@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html>
+<head>
+    <title>Leaflet NonTiledLayer Example</title>
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <link href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body,
+        #map {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="./NonTiledLayer.js"></script>
+    <script src="./NonTiledLayer.WMS.js"></script>
+    <script>
+        var token = '';
+
+        // initialize leaflet
+        var map = new L.Map('map');
+
+        // center Karlsruhe
+        map.setView(new L.LatLng(49.01, 8.4), 16);
+
+        // using the xmap WMS servlet
+        var xMapUrl = 'https://xmap-eu-n-test.cloud.ptvgroup.com';
+        var xMapAttribution = '<a href="http://www.ptvgroup.com">PTV<\/a>, HERE';
+
+        // add the xServer layers
+        // set the layer groups for default and sandbox
+        var baseLayers = {
+            "PTV classic": getLayers(xMapUrl + '/WMS/WMS', "", xMapAttribution),
+            "PTV sandbox": getLayers(xMapUrl + '/WMS/WMS', "-sandbox", xMapAttribution).addTo(map),
+            "PTV silkysand": getLayers(xMapUrl + '/WMS/WMS', "-silkysand", xMapAttribution)
+        };
+
+        L.control.layers(baseLayers, null).addTo(map);
+
+        // add dymamic tile layer
+        var myTileLayerUrl = 'DynamicTilesHandler.ashx?x={x}&y={y}&z={z}',
+	    myTileLayer = new L.TileLayer(myTileLayerUrl, {
+	        maxZoom: 20, minZoom: 0, zIndex: 100
+	    });
+        map.addLayer(myTileLayer);
+
+        // returns a layer group for xmap back- and foreground layers
+        function getLayers(url, style, attribution) {
+            var background = new L.TileLayer.WMS(url, {
+                maxZoom: 19,
+                minZoom: 0,
+                opacity: 1.0,
+                noWrap: true,
+                layers: 'xmap-ajaxbg' + style,
+                format: 'image/gif',
+                transparent: false,
+                attribution: attribution
+            });
+
+            var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
+                zIndex: 0,
+                opacity: 1.0,
+                layers: 'xmap-ajaxfg' + style,
+                format: 'image/gif',
+                transparent: true,
+                attribution: attribution
+            });
+
+            return L.layerGroup([background, foreground]);
+        }
+
+    </script>
+</body>
+</html>
