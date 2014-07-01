@@ -2,7 +2,7 @@
 
 <html>
 <head>
-    <title>Leaflet NonTiledLayer Example</title>
+    <title>Leaflet xMapServer Example</title>
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <link href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" rel="stylesheet">
@@ -52,7 +52,6 @@
             var background = new L.TileLayer.WMS(url, {
                 maxZoom: 19,
                 minZoom: 0,
-                opacity: 1.0,
                 noWrap: true,
                 layers: 'xmap-ajaxbg' + style,
                 format: 'image/gif',
@@ -61,8 +60,6 @@
             });
 
             var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
-                zIndex: 0,
-                opacity: 1.0,
                 layers: 'xmap-ajaxfg' + style,
                 format: 'image/gif',
                 transparent: true,
