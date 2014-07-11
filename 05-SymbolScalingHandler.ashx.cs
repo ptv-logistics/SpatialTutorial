@@ -71,6 +71,9 @@ namespace SpatialTutorial
                         graphics.DrawLine(pen, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p2.X, (int)p1.Y));
                         graphics.DrawLine(pen, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p1.X, (int)p2.Y));
 
+                        if (z < 6) // no symbols for levels < 6
+                            continue;
+
                         int sz;
                         Brush brush;
                         switch ((lat + lon) % 3) // switch between the 3 size modes

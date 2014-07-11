@@ -14,7 +14,7 @@ L.NonTiledLayer.WMS = L.NonTiledLayer.extend({
     },
 
     initialize: function (url, options) { // (String, Object)
-		this._wmsUrl = url;
+        this._wmsUrl = url;
 
         var wmsParams = L.extend({}, this.defaultWmsParams);
 
@@ -28,7 +28,7 @@ L.NonTiledLayer.WMS = L.NonTiledLayer.extend({
         this.wmsParams = wmsParams;
 
         L.setOptions(this, options);
-	},
+    },
 
     onAdd: function (map) {
         var projectionKey = parseFloat(this.wmsParams.version) >= 1.3 ? 'crs' : 'srs';

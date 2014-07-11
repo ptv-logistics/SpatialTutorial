@@ -6,27 +6,23 @@ L.NonTiledLayer = L.Class.extend({
 	options: {
         attribution: '',
 		opacity: 1,
-		pane: null,
-		zIndex: null
+		pane: null
 	},
 
     // override this method in the inherited class
-	//getImageUrl: function (world1, world2, width, height) {},
-	//getImageUrlAsync: function (world1, world2, width, height, f) {},
+    getImageUrl: function (world1, world2, width, height) {},
 
     initialize: function (options) {
         this._currentImage = null;
 		this._bufferImage = null;
         L.setOptions(this, options);
-	},
+    },
 
     onAdd: function (map) {
         this._map = map;
 
-        if(!this._div) {
-            this._div = L.DomUtil.create('div', 'leaflet-overlay-layer');
-			this._div.style.zIndex = this.options.zIndex;
-		}
+        if(!this._div)
+            this._div = L.DomUtil.create('div', 'leaflet-image-layer');
 		
 		if(this.options.pane)
 			this._pane = this.options.pane;
@@ -40,8 +36,6 @@ L.NonTiledLayer = L.Class.extend({
 		}
 
 		this._map.on('moveend', this._update, this);
-
-		this._updateOpacity();
 
         this._pane.appendChild(this._div);
 	},
@@ -77,7 +71,7 @@ L.NonTiledLayer = L.Class.extend({
 
 	bringToBack: function () {
 		if (this._div) {
-		    this._pane.insertBefore(this._div, pane.firstChild);
+		    this._pane.insertBefore(this._div, this._pane.firstChild);
 		}
 		return this;
 	},
@@ -181,22 +175,17 @@ L.NonTiledLayer = L.Class.extend({
         if (width < 32 || height < 32)
             return;
 
+        var url = this.getImageUrl(bounds.getNorthWest(), bounds.getSouthEast(), width, height);
+
         this._currentImage = this._initImage();
 
         this._currentImage._bounds = bounds;
 
         this._resetImage(this._currentImage);
 
-        L.DomUtil.setOpacity(this._currentImage, 0);
-
-        var i = this._currentImage;
-        if (this.getImageUrl)
-            i.src = this.getImageUrl(bounds.getNorthWest(), bounds.getSouthEast(), width, height);
-        else
-            this.getImageUrlAsync(bounds.getNorthWest(), bounds.getSouthEast(), width, height, function (url, tag) {
-                i.src = url;
-                i.tag = tag;
-            });
+        this._currentImage.src = url;
+		
+		L.DomUtil.setOpacity(this._currentImage, 0);
     },
  
     _onImageLoad: function (e) {
@@ -208,14 +197,17 @@ L.NonTiledLayer = L.Class.extend({
         if(this._bufferImage)
             this._div.removeChild(this._bufferImage);
 		
-        if (this._addInteraction)
-            this._addInteraction(this._currentImage.tag)
-
-        this._bufferImage = this._currentImage;
-
+		this._bufferImage = this._currentImage;
+		
 		L.DomUtil.setOpacity(this._currentImage, 1);      
 		
 	    this.fire('load');
+    },
+
+    setOpacity: function (opacity) {
+        this.options.opacity = opacity;
+        this._updateOpacity();
+        return this;
     },
 
 	_updateOpacity: function () {

@@ -45,7 +45,7 @@ namespace SpatialTutorial
 
                 for (double lon = left; lon <= right; lon++)
                 {
-                    for (double lat = top; lat <= bottom; lat++)                    
+                    for (double lat = top; lat <= bottom; lat++)
                     {
                         var g1 = new System.Windows.Point(lon, lat);
                         var g2 = new System.Windows.Point(lon + 1, lat + 1);
@@ -55,18 +55,18 @@ namespace SpatialTutorial
                         graphics.DrawLine(Pens.Black, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p2.X, (int)p1.Y));
                         graphics.DrawLine(Pens.Black, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p1.X, (int)p2.Y));
 
-                        if (z > 6)
-                        { 
-                            // draw symbol for latitude
-                            graphics.FillEllipse(Brushes.LightGray, (int)(p1.X + p2.X) / 2 - symbolSize, (int)p1.Y - symbolSize, symbolSize * 2, symbolSize * 2);
-                            graphics.DrawEllipse(Pens.Black, (int)(p1.X + p2.X) / 2 - symbolSize, (int)p1.Y - symbolSize, symbolSize * 2, symbolSize * 2);
-                            graphics.DrawString(string.Format("{0}°", lat), font, Brushes.Black, (int)(p1.X + p2.X) / 2, (int)p1.Y, format);
+                        if (z < 6) // no symbols for levels < 6
+                            continue;
 
-                            // draw symbol for longitude
-                            graphics.FillEllipse(Brushes.LightGray, (int)(p1.X) - symbolSize, (int)(p1.Y + p2.Y) / 2 - symbolSize, symbolSize * 2, symbolSize * 2);
-                            graphics.DrawEllipse(Pens.Black, (int)(p1.X) - symbolSize, (int)(p1.Y + p2.Y) / 2 - symbolSize, symbolSize * 2, symbolSize * 2);
-                            graphics.DrawString(string.Format("{0}°", lon), font, Brushes.Black, (int)(p1.X), (int)(p1.Y + p2.Y) / 2, format);
-                        }
+                        // draw symbol for latitude
+                        graphics.FillEllipse(Brushes.LightGray, (int)(p1.X + p2.X) / 2 - symbolSize, (int)p1.Y - symbolSize, symbolSize * 2, symbolSize * 2);
+                        graphics.DrawEllipse(Pens.Black, (int)(p1.X + p2.X) / 2 - symbolSize, (int)p1.Y - symbolSize, symbolSize * 2, symbolSize * 2);
+                        graphics.DrawString(string.Format("{0}°", lat), font, Brushes.Black, (int)(p1.X + p2.X) / 2, (int)p1.Y, format);
+
+                        // draw symbol for longitude
+                        graphics.FillEllipse(Brushes.LightGray, (int)(p1.X) - symbolSize, (int)(p1.Y + p2.Y) / 2 - symbolSize, symbolSize * 2, symbolSize * 2);
+                        graphics.DrawEllipse(Pens.Black, (int)(p1.X) - symbolSize, (int)(p1.Y + p2.Y) / 2 - symbolSize, symbolSize * 2, symbolSize * 2);
+                        graphics.DrawString(string.Format("{0}°", lon), font, Brushes.Black, (int)(p1.X), (int)(p1.Y + p2.Y) / 2, format);
                     }
                 }
 
