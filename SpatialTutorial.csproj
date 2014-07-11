@@ -64,6 +64,7 @@
   <ItemGroup>
     <Content Include="01-XMapLeaflet.html" />
     <Content Include="04-TilesAndLabels.html" />
+    <Content Include="05-SymbolScaling.html" />
     <Content Include="03-TilesAndGeography.html" />
     <Content Include="02-DynamicTileProvider.html" />
     <Content Include="token.js" />
@@ -78,6 +79,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="05-SymbolScalingHandler.ashx.cs">
+      <DependentUpon>05-SymbolScalingHandler.ashx</DependentUpon>
+    </Compile>
     <Compile Include="04-TilesAndLabelsHandler.ashx.cs">
       <DependentUpon>04-TilesAndLabelsHandler.ashx</DependentUpon>
     </Compile>
@@ -98,6 +102,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="04-TilesAndLabelsHandler.ashx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="05-SymbolScalingHandler.ashx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

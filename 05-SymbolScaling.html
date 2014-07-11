@@ -2,7 +2,7 @@
 
 <html>
 <head>
-    <title>Tiles and Labels</title>
+    <title>Leaflet NonTiledLayer Example</title>
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <link href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" rel="stylesheet">
@@ -31,7 +31,7 @@
         var map = new L.Map('map');
 
         // center Karlsruhe
-        map.setView(new L.LatLng(49.01, 8.4), 8);
+        map.setView(new L.LatLng(49.01, 8.4), 6);
 
         // using the xmap WMS servlet
         var xMapUrl = 'https://xmap-eu-n-test.cloud.ptvgroup.com';
@@ -48,7 +48,7 @@
         L.control.layers(baseLayers, null).addTo(map);
 
         // add dymamic tile layer
-        var myTileLayerUrl = '04-TilesAndLabelsHandler.ashx?x={x}&y={y}&z={z}',
+        var myTileLayerUrl = '05-SymbolScalingHandler.ashx?x={x}&y={y}&z={z}',
 	    myTileLayer = new L.TileLayer(myTileLayerUrl, {
 	        maxZoom: 20, zIndex: 100
 	    });
@@ -78,6 +78,7 @@
 
             return L.layerGroup([background, foreground]);
         }
+
     </script>
 </body>
 </html>

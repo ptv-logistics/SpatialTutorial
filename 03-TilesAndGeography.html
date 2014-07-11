@@ -31,7 +31,7 @@
         var map = new L.Map('map');
 
         // center Karlsruhe
-        map.setView(new L.LatLng(49.01, 8.4), 11);
+        map.setView(new L.LatLng(51, 10), 7);
 
         // using the xmap WMS servlet
         var xMapUrl = 'https://xmap-eu-n-test.cloud.ptvgroup.com';
@@ -50,7 +50,7 @@
         // add dymamic tile layer
         var myTileLayerUrl = '03-TilesAndGeographyHandler.ashx?x={x}&y={y}&z={z}',
 	    myTileLayer = new L.TileLayer(myTileLayerUrl, {
-	        maxZoom: 20, minZoom: 6, zIndex: 100
+	        maxZoom: 20, minZoom: 0, zIndex: 100
 	    });
         map.addLayer(myTileLayer);
 

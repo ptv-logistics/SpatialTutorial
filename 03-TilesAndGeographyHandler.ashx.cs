@@ -34,41 +34,25 @@ namespace SpatialTutorial
                 //graphics.FillRectangle(brush, new Rectangle(0, 0, 256, 256));
                 //brush.Dispose();
 
-                int strokeSize;
-                 if (z > 15)
-                    strokeSize = 4;
-                else if (z > 10)
-                    strokeSize = 3;
-                else if (z > 5)
-                    strokeSize = 2;
-                else 
-                    strokeSize = 1;   
-
-                int sz = (int)(5 * Math.Pow(Math.Pow(2, z), .2));
-                var pen = (strokeSize == 1) ? Pens.Black : new System.Drawing.Pen(System.Drawing.Color.Black, strokeSize);
-
                 var rect = TransformTools.TileToWgs(x, y, z);
-                double left = Math.Floor(rect.Left);
-                double right = Math.Floor(rect.Right);
-                double top = Math.Ceiling(rect.Top);
-                double bottom = Math.Ceiling(rect.Bottom);             
+                int left = (int)Math.Floor(rect.Left);
+                int right = (int)Math.Floor(rect.Right);
+                int top = (int)Math.Floor(rect.Top);
+                int bottom = (int)Math.Floor(rect.Bottom);
 
-                for (double lon = left; lon <= right; lon++)
+                for (int lon = left; lon <= right; lon++)
                 {
-                    for (double lat = top; lat <= bottom; lat++)                    
+                    for (int lat = top; lat <= bottom; lat++)
                     {
                         var g1 = new System.Windows.Point(lon, lat);
-                        var g2 = new System.Windows.Point(lon + 1, lat - 1);
+                        var g2 = new System.Windows.Point(lon + 1, lat + 1);
                         var p1 = TransformTools.WgsToTile(x, y, z, g1);
                         var p2 = TransformTools.WgsToTile(x, y, z, g2);
 
-                        graphics.DrawLine(pen, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p2.X, (int)p1.Y));
-                        graphics.DrawLine(pen, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p1.X, (int)p2.Y));             
+                        graphics.DrawLine(Pens.Black, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p2.X, (int)p1.Y));
+                        graphics.DrawLine(Pens.Black, new System.Drawing.Point((int)p1.X, (int)p1.Y), new System.Drawing.Point((int)p1.X, (int)p2.Y));             
                     }
                 }
-
-                if(strokeSize != 1)
-                    pen.Dispose();
 
                 //Stream the image to the client
                 using (var memoryStream = new System.IO.MemoryStream())
