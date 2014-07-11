@@ -59,7 +59,7 @@
             var background = new L.TileLayer.WMS(url, {
                 maxZoom: 19,
                 minZoom: 0,
-                opacity: 1.0,
+                opacity: 0.5,
                 noWrap: true,
                 layers: 'xmap-ajaxbg' + style,
                 format: 'image/gif',
@@ -68,12 +68,13 @@
             });
 
             var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
-                zIndex: 0,
-                opacity: 1.0,
+                opacity: 0.5,
                 layers: 'xmap-ajaxfg' + style,
                 format: 'image/gif',
                 transparent: true,
-                attribution: attribution
+                attribution: attribution,
+                pane:  map.getPanes().tilePane,
+                zIndex: 50
             });
 
             return L.layerGroup([background, foreground]);
