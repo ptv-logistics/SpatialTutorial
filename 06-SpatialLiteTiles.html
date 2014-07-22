@@ -31,7 +31,7 @@
         var map = new L.Map('map');
 
         // center Karlsruhe
-        map.setView(new L.LatLng(49.01, 8.4), 6);
+        map.setView(new L.LatLng(50, 10), 7);
 
         // using the xmap WMS servlet
         var xMapUrl = 'https://xmap-eu-n-test.cloud.ptvgroup.com';
@@ -59,7 +59,6 @@
             var background = new L.TileLayer.WMS(url, {
                 maxZoom: 19,
                 minZoom: 0,
-                opacity: 0.5,
                 noWrap: true,
                 layers: 'xmap-ajaxbg' + style,
                 format: 'image/gif',
@@ -68,13 +67,10 @@
             });
 
             var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
-                opacity: 0.5,
                 layers: 'xmap-ajaxfg' + style,
                 format: 'image/gif',
                 transparent: true,
-                attribution: attribution,
-                pane:  map.getPanes().tilePane,
-                zIndex: 50
+                attribution: attribution
             });
 
             return L.layerGroup([background, foreground]);

@@ -48,7 +48,7 @@
         L.control.layers(baseLayers, null).addTo(map);
 
         // add dymamic tile layer
-        var myTileLayerUrl = 'DynamicTilesHandler.ashx?x={x}&y={y}&z={z}',
+        var myTileLayerUrl = '02-DynamicTilesHandler.ashx?x={x}&y={y}&z={z}',
 	    myTileLayer = new L.TileLayer(myTileLayerUrl, {
 	        maxZoom: 20, minZoom: 0, zIndex: 100
 	    });
