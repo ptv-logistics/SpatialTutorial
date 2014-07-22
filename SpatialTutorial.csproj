@@ -74,6 +74,7 @@
     <Content Include="03-TilesAndGeography.html" />
     <Content Include="02-DynamicTileProvider.html" />
     <Content Include="06-SpatialLiteTiles.html" />
+    <Content Include="07-ThematicTiles.html" />
     <Content Include="Global.asax" />
     <Content Include="index.html" />
     <Content Include="token.js" />
@@ -103,6 +104,9 @@
     <Compile Include="06-SpatialLiteTilesHandler.ashx.cs">
       <DependentUpon>06-SpatialLiteTilesHandler.ashx</DependentUpon>
     </Compile>
+    <Compile Include="07-ThematicTilesHandler.ashx.cs">
+      <DependentUpon>07-ThematicTilesHandler.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -126,6 +130,7 @@
   <ItemGroup>
     <Content Include="02-DynamicTilesHandler.ashx" />
     <None Include="App_Data\db.sqlite" />
+    <Content Include="07-ThematicTilesHandler.ashx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

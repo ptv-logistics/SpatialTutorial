@@ -10,7 +10,7 @@ namespace SpatialTutorial
     /// <summary>
     /// Summary description for DynamicTilesHandler
     /// </summary>
-    public class SpatialLiteTilesHandler : IHttpHandler
+    public class ThematicTilesHandler : IHttpHandler
     {
         // http://msdn.microsoft.com/en-us/library/bb259689.aspx
         public void ProcessRequest(HttpContext context)
@@ -40,10 +40,11 @@ namespace SpatialTutorial
                 string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
 
                 var strSql = string.Format(
-                    "Select GID, Geom from (" +
+                    "Select GID, Geom, Category from (" +
                     "SELECT ID as GID, AsBinary(geometry) AS Geom FROM 'Germany 5-digit postcode areas 2012' " + 
                     "WHERE ROWID IN (SELECT pkid FROM 'idx_Germany 5-digit postcode areas 2012_Geometry'  " +
-                    "WHERE xmin < {0} AND xmax > {1} AND ymin < {2} AND ymax > {3})) ",
+                    "WHERE xmin < {0} AND xmax > {1} AND ymin < {2} AND ymax > {3})) " +
+                    "inner join MyData on MyData.Id = gid",
                     sx2, sx1, sy2, sy1);
 
                 using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
@@ -53,12 +54,18 @@ namespace SpatialTutorial
                     {
                         string id = reader.GetString(0);
                         byte[] wkb = reader[1] as byte[];
+                        object cat = reader[2];
+                        Color color;
+                        if (cat is DBNull)
+                            color = System.Drawing.Color.Gray;
+                        else
+                            color = palette[System.Convert.ToInt16(cat) - 1];
 
                         // create GDI path from wkb
                         var path = WkbToGdi.Parse(wkb, p => TransformTools.WgsToTile(x, y, z, p));
 
                         // fill polygon
-                        var fill = new SolidBrush(Color.FromArgb(168, 0, 0, 255));
+                        var fill = new SolidBrush(Color.FromArgb(168, color.R, color.G, color.B));
                         graphics.FillPath(fill, path);
                         fill.Dispose();
 
@@ -85,6 +92,18 @@ namespace SpatialTutorial
                 }
             }
         }
+
+        // the palette for the choropleth
+        System.Drawing.Color[] palette = new System.Drawing.Color[]
+            {
+                System.Drawing.Color.Green,
+                System.Drawing.Color.LightGreen,
+                System.Drawing.Color.Yellow,                               
+                System.Drawing.Color.Orange,                                
+                System.Drawing.Color.Red,                                
+                System.Drawing.Color.DarkRed,                                
+                System.Drawing.Color.Purple,
+        };
         
         public bool IsReusable
         {
