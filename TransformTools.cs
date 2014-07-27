@@ -11,7 +11,7 @@ namespace SpatialTutorial
         /// <summary>
         /// Convert Wgs84 coordinates (Lon/Lat) to spherical mercator,
         /// aka "Web Mercator", aka "Google Mercator". You can also use this formula
-        /// for "PTV Mercator" by setting the radius to 6571000
+        /// for "PTV Mercator" by setting the radius to 6371000
         /// </summary>
         public static Point WgsToSphereMercator(Point point, double radius = 6378137)
         {
@@ -52,17 +52,6 @@ namespace SpatialTutorial
         /// <summary>
         /// Calculate WGS (Lon/Lat) bounds for a tile key
         /// </summary>
-        public static Rect TileToWgs(uint x, uint y, uint z)
-        {
-            // when using tiles with wgs, the actual earth radius doesn't matter, can just use radius 1 
-            var rect = TileToSphereMercator(x, y, z, 1);
-
-            return new Rect(SphereMercatorToWgs(rect.TopLeft, 1), SphereMercatorToWgs(rect.BottomRight, 1));
-        }
-
-        /// <summary>
-        /// Calculate WGS (Lon/Lat) bounds for a tile key
-        /// </summary>
         public static Rect TileToWgs(uint x, uint y, uint z, int bleedingPixels = 0)
         {
             // when using tiles with wgs, the actual earth radius doesn't matter, can just use radius 1 
@@ -79,7 +68,7 @@ namespace SpatialTutorial
         }
 
         /// <summary>
-        /// Convert a point relative to a mercator viewport to an point relative to an image
+        /// Convert a point relative to a mercator viewport to a point relative to an image
         /// </summary>
         public static Point MercatorToImage(Rect mercatorRect, Size imageSize, Point mercatorPoint)
         {
