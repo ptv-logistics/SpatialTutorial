@@ -39,19 +39,15 @@ namespace SpatialTutorial
                 string sx2 = Convert.ToString(queryWindow.Right, CultureInfo.InvariantCulture);
                 string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
 
-                var strSql = string.Format(
-                    "Select GID, Geom from (" +
-                    "SELECT ID as GID, AsBinary(geometry) AS Geom FROM 'Germany 5-digit postcode areas 2012' " + 
-                    "WHERE ROWID IN (SELECT pkid FROM 'idx_Germany 5-digit postcode areas 2012_Geometry'  " +
-                    "WHERE xmin < {0} AND xmax > {1} AND ymin < {2} AND ymax > {3})) ",
-                    sx2, sx1, sy2, sy1);
+                var strSql = string.Format("SELECT Id, AsBinary(Geometry) FROM WorldGeom WHERE MBRIntersects(Geometry, BuildMbr({0}, {1}, {2}, {3}));",
+                    sx1, sy2, sx2, sy1);
 
                 using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        string id = reader.GetString(0);
+                        int id = reader.GetInt32(0);
                         byte[] wkb = reader[1] as byte[];
 
                         // create GDI path from wkb
@@ -62,11 +58,9 @@ namespace SpatialTutorial
                         graphics.FillPath(fill, path);
                         fill.Dispose();
 
-                        if (z > 6)
-                        {
-                            // draw outline
-                            graphics.DrawPath(Pens.Black, path);
-                        }
+                        // draw outline
+                        graphics.DrawPath(Pens.Black, path);
+
                     }
 
                     reader.Close();

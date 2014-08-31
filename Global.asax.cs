@@ -20,7 +20,7 @@ namespace SpatialTutorial
             if (!path.ToLowerInvariant().Contains(slPath.ToLowerInvariant()))
                 Environment.SetEnvironmentVariable("path", slPath + ";" + path);
 
-            cn = new SQLiteConnection(@"Data Source=|DATADIRECTORY|\db.sqlite;Version=3;");
+            cn = new SQLiteConnection(@"Data Source=|DATADIRECTORY|\db.sqlite;Version=3;"); 
             cn.Open();
             SQLiteCommand cm = new SQLiteCommand(String.Format("SELECT load_extension('{0}');", "libspatialite-4.dll"), cn);
             cm.ExecuteNonQuery();

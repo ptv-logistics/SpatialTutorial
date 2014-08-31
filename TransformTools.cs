@@ -80,9 +80,22 @@ namespace SpatialTutorial
         /// <summary>
         /// Convert a WGS (Lon,Lat) coordinate to a point relative to a tile image
         /// </summary>
-        public static Point WgsToTile(uint x, uint y, uint z, Point wgsPoint)
+        public static Point WgsToTile(uint x, uint y, uint z, Point wgsPoint, double clipWgsAtDegrees = 85.05)
         {
+            if (clipWgsAtDegrees < 90)
+                wgsPoint = ClipWgsPoint(wgsPoint, clipWgsAtDegrees);
+
             return MercatorToImage(TileToSphereMercator(x, y, z, 1), new Size(256, 256), WgsToSphereMercator(wgsPoint, 1));
+        }
+
+        public static Point ClipWgsPoint(Point p, double degrees = 85.05)
+        {
+            if (p.Y > degrees)
+                p.Y = degrees;
+            if (p.Y < -degrees)
+                p.Y = -degrees;
+
+            return p;
         }
     }
 }
