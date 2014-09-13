@@ -11,8 +11,7 @@ namespace SpatialTutorial
     /// Summary description for DynamicTilesHandler
     /// </summary>
     public class SpatialLiteTilesHandler : IHttpHandler
-    {
-        // http://msdn.microsoft.com/en-us/library/bb259689.aspx
+    { 
         public void ProcessRequest(HttpContext context)
         {
            uint x, y, z;
@@ -60,7 +59,6 @@ namespace SpatialTutorial
 
                         // draw outline
                         graphics.DrawPath(Pens.Black, path);
-
                     }
 
                     reader.Close();

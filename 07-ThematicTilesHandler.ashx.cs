@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Web;
 using System.Data.SQLite;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace SpatialTutorial
 {
@@ -12,10 +13,9 @@ namespace SpatialTutorial
     /// </summary>
     public class ThematicTilesHandler : IHttpHandler
     {
-        // http://msdn.microsoft.com/en-us/library/bb259689.aspx
         public void ProcessRequest(HttpContext context)
         {
-           uint x, y, z;
+            uint x, y, z;
 
             //Parse request parameters
             if (!uint.TryParse(context.Request.Params["x"], out x))
@@ -40,40 +40,39 @@ namespace SpatialTutorial
                 string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
 
                 var strSql = string.Format(
-                    "Select GID, Geom, Category from (" +
-                    "SELECT ID as GID, AsBinary(geometry) AS Geom FROM 'Germany 5-digit postcode areas 2012' " + 
-                    "WHERE ROWID IN (SELECT pkid FROM 'idx_Germany 5-digit postcode areas 2012_Geometry'  " +
-                    "WHERE xmin < {0} AND xmax > {1} AND ymin < {2} AND ymax > {3})) " +
-                    "inner join MyData on MyData.Id = gid",
-                    sx2, sx1, sy2, sy1);
+                    @"SELECT WorldGeom.Id, AsBinary(Geometry), Pop/Area as PopDens FROM WorldGeom " + 
+                    @"JOIN WorldData on WorldData.Id = WorldGeom.Id " + 
+                    @"WHERE MBRIntersects(Geometry, BuildMbr({0}, {1}, {2}, {3}));",
+                    sx1, sy2, sx2, sy1);
+
+                var choroploeth = new Classification<double, System.Drawing.Color>();
+                choroploeth.MinKey = 0;
+                choroploeth.DefaultValue = System.Drawing.Color.White;
+                choroploeth.Values = new SortedList<double, Color> { 
+                { 190, palette[0] }, { 259, palette[1] }, { 509, palette[2] }, { 1900, palette[3] }, { 2590, palette[4] }, { 5090, palette[5] }, { 19000000, palette[6] } };
 
                 using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        string id = reader.GetString(0);
+                        int id = reader.GetInt32(0);
                         byte[] wkb = reader[1] as byte[];
-                        object cat = reader[2];
-                        Color color;
-                        if (cat is DBNull)
-                            color = System.Drawing.Color.Gray;
-                        else
-                            color = palette[System.Convert.ToInt16(cat) - 1];
+                        double popDens = -1;
+                        if(!reader.IsDBNull(2))
+                            popDens = reader.GetDouble(2);
 
                         // create GDI path from wkb
                         var path = WkbToGdi.Parse(wkb, p => TransformTools.WgsToTile(x, y, z, p));
 
                         // fill polygon
+                        var color = choroploeth.GetValue(popDens);
                         var fill = new SolidBrush(Color.FromArgb(168, color.R, color.G, color.B));
                         graphics.FillPath(fill, path);
                         fill.Dispose();
 
-                        if (z > 6)
-                        {
-                            // draw outline
-                            graphics.DrawPath(Pens.Black, path);
-                        }
+                        // draw outline
+                        graphics.DrawPath(Pens.Black, path);
                     }
 
                     reader.Close();
@@ -92,7 +91,7 @@ namespace SpatialTutorial
                 }
             }
         }
-
+        
         // the palette for the choropleth
         System.Drawing.Color[] palette = new System.Drawing.Color[]
             {
@@ -108,6 +107,33 @@ namespace SpatialTutorial
         public bool IsReusable
         {
             get { return true; }
+        }
+    }
+
+    public class Classification<K, V> where K : IComparable
+    {
+        public V DefaultValue { get; set; }
+
+        public K MinKey { get; set; }
+
+        public SortedList<K, V> Values { get; set; }
+
+        public V GetValue(K key)
+        {
+            if (key == null)
+                return DefaultValue;
+
+            if (key.CompareTo(MinKey) < 0)
+                return DefaultValue;
+
+            // todo: maybe implement some O(log n) method
+            foreach (K k in Values.Keys)
+            {
+                if (k.CompareTo(key) > 0)
+                    return Values[k];                 
+            }
+
+            return DefaultValue;
         }
     }
 }
