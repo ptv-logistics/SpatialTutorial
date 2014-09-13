@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace SpatialTutorial
 {
     /// <summary>
-    /// Summary description for DynamicTilesHandler
+    /// Summary description for ThematicTilesHandler
     /// </summary>
     public class ThematicTilesHandler : IHttpHandler
     {
@@ -40,16 +40,25 @@ namespace SpatialTutorial
                 string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
 
                 var strSql = string.Format(
-                    @"SELECT WorldGeom.Id, AsBinary(Geometry), Pop/Area as PopDens FROM WorldGeom " + 
-                    @"JOIN WorldData on WorldData.Id = WorldGeom.Id " + 
+                    @"SELECT WorldGeom.Id, AsBinary(Geometry), Pop/Area as PopDens FROM WorldGeom " +
+                    @"JOIN WorldData on WorldData.Id = WorldGeom.Id " +
                     @"WHERE MBRIntersects(Geometry, BuildMbr({0}, {1}, {2}, {3}));",
                     sx1, sy2, sx2, sy1);
 
-                var choroploeth = new Classification<double, System.Drawing.Color>();
-                choroploeth.MinKey = 0;
-                choroploeth.DefaultValue = System.Drawing.Color.White;
-                choroploeth.Values = new SortedList<double, Color> { 
-                { 190, palette[0] }, { 259, palette[1] }, { 509, palette[2] }, { 1900, palette[3] }, { 2590, palette[4] }, { 5090, palette[5] }, { 19000000, palette[6] } };
+                var choropleth = new Classification<double, Color>
+                {
+                    MinValue = 0, // lower border for classification
+                    DefaultAttribute = Color.White, // color if key hits no class
+                    Values = new SortedList<double, Color> { // the classes
+                        { 50, Color.Green },
+                        { 100, Color.LightGreen },
+                        { 250, Color.Yellow }, 
+                        { 500,Color.Orange },
+                        { 1000, Color.Red },
+                        { 2500, Color.DarkRed },
+                        { double.MaxValue, Color.Purple } 
+                    }
+                };
 
                 using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
@@ -58,15 +67,13 @@ namespace SpatialTutorial
                     {
                         int id = reader.GetInt32(0);
                         byte[] wkb = reader[1] as byte[];
-                        double popDens = -1;
-                        if(!reader.IsDBNull(2))
-                            popDens = reader.GetDouble(2);
-
+                        double popDens = reader.IsDBNull(2)? -1 : reader.GetDouble(2);
+ 
                         // create GDI path from wkb
                         var path = WkbToGdi.Parse(wkb, p => TransformTools.WgsToTile(x, y, z, p));
 
                         // fill polygon
-                        var color = choroploeth.GetValue(popDens);
+                        var color = choropleth.GetValue(popDens);
                         var fill = new SolidBrush(Color.FromArgb(168, color.R, color.G, color.B));
                         graphics.FillPath(fill, path);
                         fill.Dispose();
@@ -91,49 +98,37 @@ namespace SpatialTutorial
                 }
             }
         }
-        
-        // the palette for the choropleth
-        System.Drawing.Color[] palette = new System.Drawing.Color[]
-            {
-                System.Drawing.Color.Green,
-                System.Drawing.Color.LightGreen,
-                System.Drawing.Color.Yellow,                               
-                System.Drawing.Color.Orange,                                
-                System.Drawing.Color.Red,                                
-                System.Drawing.Color.DarkRed,                                
-                System.Drawing.Color.Purple,
-        };
-        
+
         public bool IsReusable
         {
             get { return true; }
         }
     }
 
-    public class Classification<K, V> where K : IComparable
+    public class Classification<V, A> where V : IComparable
     {
-        public V DefaultValue { get; set; }
+        public A DefaultAttribute { get; set; }
 
-        public K MinKey { get; set; }
+        public V MinValue { get; set; }
 
-        public SortedList<K, V> Values { get; set; }
+        public SortedList<V, A> Values { get; set; }
 
-        public V GetValue(K key)
+        public A GetValue(V key)
         {
             if (key == null)
-                return DefaultValue;
+                return DefaultAttribute;
 
-            if (key.CompareTo(MinKey) < 0)
-                return DefaultValue;
+            if (key.CompareTo(MinValue) < 0)
+                return DefaultAttribute;
 
             // todo: maybe implement some O(log n) method
-            foreach (K k in Values.Keys)
+            foreach (V k in Values.Keys)
             {
                 if (k.CompareTo(key) > 0)
-                    return Values[k];                 
+                    return Values[k];
             }
 
-            return DefaultValue;
+            return DefaultAttribute;
         }
     }
 }
