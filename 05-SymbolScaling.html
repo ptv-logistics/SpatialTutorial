@@ -41,8 +41,8 @@
         // set the layer groups for default and sandbox
         var baseLayers = {
             "PTV classic": getLayers(xMapUrl + '/WMS/WMS', "", xMapAttribution),
-            "PTV sandbox": getLayers(xMapUrl + '/WMS/WMS', "-sandbox", xMapAttribution).addTo(map),
-            "PTV silkysand": getLayers(xMapUrl + '/WMS/WMS', "-silkysand", xMapAttribution)
+            "PTV sandbox": getLayers(xMapUrl + '/WMS/WMS', "sandbox", xMapAttribution).addTo(map),
+            "PTV silkysand": getLayers(xMapUrl + '/WMS/WMS', "silkysand", xMapAttribution)
         };
 
         L.control.layers(baseLayers, null).addTo(map);
@@ -61,7 +61,7 @@
                 minZoom: 0,
                 opacity: 0.5,
                 noWrap: true,
-                layers: 'xmap-ajaxbg' + style,
+                layers: style? 'xmap-' + style + '-bg' : 'xmap-ajaxbg',
                 format: 'image/gif',
                 transparent: false,
                 attribution: attribution
@@ -69,7 +69,7 @@
 
             var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
                 opacity: 0.5,
-                layers: 'xmap-ajaxfg' + style,
+                layers: style? 'xmap-' + style + '-fg' : 'xmap-ajaxfg',
                 format: 'image/gif',
                 transparent: true,
                 attribution: attribution,
