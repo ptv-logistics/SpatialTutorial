@@ -34,16 +34,11 @@ namespace SpatialTutorial
                 var queryWindow = TransformTools.TileToWgs(x, y, z);
 
                 // build the sql
-                string sx1 = Convert.ToString(queryWindow.Left, CultureInfo.InvariantCulture);
-                string sy1 = Convert.ToString(queryWindow.Top, CultureInfo.InvariantCulture);
-                string sx2 = Convert.ToString(queryWindow.Right, CultureInfo.InvariantCulture);
-                string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
-
-                var strSql = string.Format(
+                var strSql = string.Format(CultureInfo.InvariantCulture,
                     @"SELECT WorldGeom.Id, AsBinary(Geometry), Pop/Area as PopDens FROM WorldGeom " +
                     @"JOIN WorldData on WorldData.Id = WorldGeom.Id " +
                     @"WHERE MBRIntersects(Geometry, BuildMbr({0}, {1}, {2}, {3}));",
-                    sx1, sy2, sx2, sy1);
+                    queryWindow.Left, queryWindow.Top, queryWindow.Right, queryWindow.Bottom);
 
                 var choropleth = new Classification<double, Color>
                 {

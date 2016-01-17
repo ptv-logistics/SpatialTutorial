@@ -24,6 +24,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -75,6 +76,7 @@
     <Content Include="02-DynamicTileProvider.html" />
     <Content Include="06-SpatialLiteTiles.html" />
     <Content Include="07-ThematicTiles.html" />
+    <Content Include="08-SpatialPicking.html" />
     <Content Include="Global.asax" />
     <Content Include="index.html" />
     <Content Include="token.js" />
@@ -107,6 +109,9 @@
     <Compile Include="07-ThematicTilesHandler.ashx.cs">
       <DependentUpon>07-ThematicTilesHandler.ashx</DependentUpon>
     </Compile>
+    <Compile Include="08-SpatialPickingHandler.ashx.cs">
+      <DependentUpon>08-SpatialPickingHandler.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -129,6 +134,7 @@
   <ItemGroup />
   <ItemGroup>
     <Content Include="02-DynamicTilesHandler.ashx" />
+    <Content Include="08-SpatialPickingHandler.ashx" />
     <None Include="App_Data\db.sqlite" />
     <Content Include="07-ThematicTilesHandler.ashx" />
   </ItemGroup>

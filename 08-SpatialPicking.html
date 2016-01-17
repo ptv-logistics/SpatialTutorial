@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html>
+<head>
+    <title>Leaflet NonTiledLayer Example</title>
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <link href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body,
+        #map {
+            height: 100%;
+        }
+
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+            .info h4 {
+                margin: 0 0 5px;
+                color: #777;
+            }
+
+        .legend {
+            text-align: left;
+            line-height: 18px;
+            color: #555;
+        }
+
+            .legend i {
+                width: 18px;
+                height: 18px;
+                float: left;
+                margin-right: 8px;
+                opacity: 0.7;
+            }
+    </style>
+</head>
+
+<body>
+    <div id="map" />
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="./NonTiledLayer.js"></script>
+    <script src="./NonTiledLayer.WMS.js"></script>
+    <script src="./token.js"></script>
+    <script>
+        // initialize leaflet
+        var map = new L.Map('map');
+
+        // center Karlsruhe
+        map.setView(new L.LatLng(50, 10), 4);
+
+        // using the xmap WMS servlet
+        var xMapUrl = 'https://xmap-eu-n-test.cloud.ptvgroup.com';
+        var xMapAttribution = '<a href="http://www.ptvgroup.com">PTV<\/a>, HERE';
+
+        // add the xServer layers
+        // set the layer groups for default and sandbox
+        var baseLayers = {
+            "PTV classic": getLayers(xMapUrl + '/WMS/WMS', "", xMapAttribution),
+            "PTV sandbox": getLayers(xMapUrl + '/WMS/WMS', "sandbox", xMapAttribution).addTo(map),
+            "PTV silkysand": getLayers(xMapUrl + '/WMS/WMS', "silkysand", xMapAttribution)
+        };
+
+        L.control.layers(baseLayers, null).addTo(map);
+
+        // add dymamic tile layer
+        var myTileLayerUrl = '07-ThematicTilesHandler.ashx?x={x}&y={y}&z={z}',
+	    myTileLayer = new L.TileLayer(myTileLayerUrl, {
+	        maxZoom: 20, zIndex: 100
+	    });
+        map.addLayer(myTileLayer);
+
+        // add click handler
+        map.on('click', onMapClick);
+
+        function onMapClick(e) {
+            $.ajax({
+                url: "08-SpatialPickingHandler.ashx?lat=" + e.latlng.lat + "&lng=" + e.latlng.lng,
+                type: "GET",
+                success: function (data, status, xhr) {
+                    displayResult(data, e.latlng);
+                }
+            });
+        }
+
+        var pickedFeature;
+        var popup = L.popup();
+
+        function displayResult(pickedPolygon, latlng) {
+            if (pickedFeature)
+                map.removeLayer(pickedFeature);
+            var feature = {
+                "type": "Feature",
+                "properties": {
+                    "style": {
+                        weight: 4, color: "#222", opacity: 1,
+                        fillColor: "#fff", fillOpacity: 0.5
+                    }
+                }
+            };
+
+            feature.geometry = pickedPolygon.geometry;
+
+            pickedFeature = L.geoJson([feature], {
+                style: function (feature) {
+                    return feature.properties && feature.properties.style;
+                }
+            }).addTo(map);
+
+            popup.setLatLng(latlng)
+                .setContent('<h4>'+pickedPolygon.properties.name + '</h4><b>Area: </b>' +
+                new Intl.NumberFormat().format(pickedPolygon.properties.area) + ' km2<br><b>Population: </b>' + new Intl.NumberFormat().format(pickedPolygon.properties.pop))
+                .openOn(map);
+        };
+
+        // using legend code from http://leafletjs.com/examples/choropleth-example.html
+        var legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function (map) {
+
+            var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 50, 100, 250, 500, 1000, 2500],
+            labels = [];
+            div.innerHTML = '<h4>Population density</h4>';
+
+            // loop through our density intervals and generate a label with a colored square for each interval
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+            }
+
+            return div;
+        };
+
+        legend.addTo(map);
+
+        // get color depending on population density value
+        function getColor(d) {
+            return d > 2500 ? '#800080' :
+			       d > 1000 ? '#8B0000' :
+			       d > 500 ? '#FF0000' :
+			       d > 250 ? '#FFA500' :
+			       d > 100 ? '#FFFF00' :
+			       d > 50 ? '#90EE90' :
+			                  '#008000';
+        }
+
+        // returns a layer group for xmap back- and foreground layers
+        function getLayers(url, style, attribution) {
+            var background = new L.TileLayer.WMS(url, {
+                maxZoom: 19,
+                minZoom: 0,
+                noWrap: true,
+                layers: style ? 'xmap-' + style + '-bg' : 'xmap-ajaxbg',
+                format: 'image/gif',
+                transparent: false,
+                attribution: attribution
+            });
+
+            var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
+                layers: style ? 'xmap-' + style + '-fg' : 'xmap-ajafbg',
+                format: 'image/gif',
+                transparent: true,
+                attribution: attribution
+            });
+
+            return L.layerGroup([background, foreground]);
+        }
+
+    </script>
+</body>
+</html>

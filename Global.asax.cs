@@ -25,6 +25,7 @@ namespace SpatialTutorial
             SQLiteCommand cm = new SQLiteCommand(String.Format("SELECT load_extension('{0}');", "libspatialite-4.dll"), cn);
             cm.ExecuteNonQuery();
         }
+
         protected void Session_Start(object sender, EventArgs e)
         {
 
