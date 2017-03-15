@@ -1,17 +1,18 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 
 <html>
+
 <head>
-    <title>Leaflet NonTiledLayer Example</title>
+    <title>ptv-logistics SpatialTutorial</title>
     <meta content="yes" name="apple-mobile-web-app-capable">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <link href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" rel="stylesheet">
+    <link href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" rel="stylesheet">
     <style>
         body {
             padding: 0;
             margin: 0;
         }
-
+        
         html,
         body,
         #map {
@@ -22,9 +23,7 @@
 
 <body>
     <div id="map" />
-    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-    <script src="./NonTiledLayer.js"></script>
-    <script src="./NonTiledLayer.WMS.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
     <script src="./token.js"></script>
     <script>
         // initialize leaflet
@@ -33,52 +32,61 @@
         // center Karlsruhe
         map.setView(new L.LatLng(51, 10), 9);
 
-        // using the xmap WMS servlet
-        var xMapUrl = 'https://xmap-eu-n-test.cloud.ptvgroup.com';
-        var xMapAttribution = '<a href="http://www.ptvgroup.com">PTV<\/a>, HERE';
-
-        // add the xServer layers
-        // set the layer groups for default and sandbox
-        var baseLayers = {
-            "PTV classic": getLayers(xMapUrl + '/WMS/WMS', "", xMapAttribution),
-            "PTV sandbox": getLayers(xMapUrl + '/WMS/WMS', "sandbox", xMapAttribution).addTo(map),
-            "PTV silkysand": getLayers(xMapUrl + '/WMS/WMS', "silkysand", xMapAttribution)
-        };
-
-        L.control.layers(baseLayers, null).addTo(map);
+        // create xMapServer-2 base layers
+        var baseLayers = createBaseLayers();
 
         // add dymamic tile layer
         var myTileLayerUrl = '02-DynamicTilesHandler.ashx?x={x}&y={y}&z={z}',
-	    myTileLayer = new L.TileLayer(myTileLayerUrl, {
-	        maxZoom: 20, minZoom: 0, zIndex: 100
-	    });
+            myTileLayer = new L.TileLayer(myTileLayerUrl, {
+                maxZoom: 20,
+                minZoom: 0,
+                zIndex: 100
+            });
         map.addLayer(myTileLayer);
 
-        // returns a layer group for xmap back- and foreground layers
-        function getLayers(url, style, attribution) {
-            var background = new L.TileLayer.WMS(url, {
-                maxZoom: 19,
-                minZoom: 0,
-                opacity: 1.0,
-                noWrap: true,
-                layers: style? 'xmap-' + style + '-bg' : 'xmap-ajaxbg',
-                format: 'image/gif',
-                transparent: false,
-                attribution: attribution
-            });
+        function createBaseLayers() {
+            if (!window.token) {
+                // no token defined - use xMap-1 background tlies
+                var url = 'https://api{s}-test.cloud.ptvgroup.com/WMS/GetTile/xmap-{profile}-bg/{x}/{y}/{z}.png'
+                var background = new L.TileLayer.WMS(url, {
+                    maxZoom: 19,
+                    minZoom: 0,
+                    opacity: 1.0,
+                    noWrap: true,
+                    attribution: '<a target="_blank" href="http://www.ptvgroup.com">PTV</a>, TOMTOM',
+                    profile: 'silkysand',
+                    subdomains: '1234'
+                });
 
-            var foreground = new L.NonTiledLayer.WMS(url + '?xtok=' + token, {
-                zIndex: 0,
-                opacity: 1.0,
-                layers: style? 'xmap-' + style + '-fg' : 'xmap-ajaxfg',
-                format: 'image/gif',
-                transparent: true,
-                attribution: attribution
-            });
+                return L.layerGroup([background]).addTo(map);
+            } else {
+                var background = L.tileLayer(
+                    'https://s0{s}-xserver2-dev.cloud.ptvgroup.com/services/rest/XMap/tile/{z}/{x}/{y}' +
+                    '?storedProfile={profile}&layers=background,transport&xtok={token}', {
+                        profile: 'silkysand',
+                        token: window.token,
+                        attribution: '<a target="_blank" href="http://www.ptvgroup.com">PTV</a>, TOMTOM',
+                        subdomains: '1234',
+                        maxZoom: 22,
+                        pane: 'tilePane'
+                    }).addTo(map);
 
-            return L.layerGroup([background, foreground]);
+                var foreground = L.tileLayer(
+                    'https://s0{s}-xserver2-dev.cloud.ptvgroup.com/services/rest/XMap/tile/{z}/{x}/{y}' +
+                    '?storedProfile={profile}&layers=labels&xtok={token}', {
+                        profile: 'silkysand',
+                        token: window.token,
+                        attribution: '<a target="_blank" href="http://www.ptvgroup.com">PTV</a>, TOMTOM',
+                        subdomains: '1234',
+                        maxZoom: 22,
+                        zIndex: 200,
+                        pane: 'shadowPane'
+                    }).addTo(map);
+
+                return L.layerGroup([background, foreground]).addTo(map);
+            }
         }
-
     </script>
 </body>
+
 </html>
