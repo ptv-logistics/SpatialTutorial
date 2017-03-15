@@ -17,28 +17,34 @@ namespace ShapeImport
             if (System.IO.File.Exists(string.Format(@"{0}\Data\db.sqlite", appPath)))
                 System.IO.File.Delete(string.Format(@"{0}\Data\db.sqlite", appPath));
 
+            var mod_spatialite_folderPath = (IntPtr.Size == 4) ?
+                 "mod_spatialite-4.4.0-RC0-win-x86" : "mod_spatialite-4.4.0-RC0-win-amd64";
 
-            // initialize sqlite
-            String slPath = appPath.Substring(0, appPath.LastIndexOf('\\'));
+            //using relative path, cannot use absolute path, dll load will fail
+            var slPath = appPath.Substring(0, appPath.LastIndexOf('\\'));
             slPath = slPath.Substring(0, slPath.LastIndexOf('\\'));
             slPath = slPath.Substring(0, slPath.LastIndexOf('\\'));
-            slPath = slPath + "\\SpatialLite";
 
-            String path = Environment.GetEnvironmentVariable("path");
-            if (path == null) path = "";
-            if (!path.ToLowerInvariant().Contains(slPath.ToLowerInvariant()))
-                Environment.SetEnvironmentVariable("path", slPath + ";" + path);
+            string path =
+                slPath + @"\SpatialLite\" + mod_spatialite_folderPath + ";" +
+                Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Path", path, EnvironmentVariableTarget.Process);
 
             var cn = new SQLiteConnection(string.Format(@"Data Source={0}\Data\db.sqlite;Version=3;", appPath));
             cn.Open();
-            SQLiteCommand cm = new SQLiteCommand(String.Format("SELECT load_extension('{0}');", "libspatialite-4.dll"), cn);
+
+            cn.LoadExtension("mod_spatialite");
+
+            var cm = new SQLiteCommand("SELECT InitSpatialMetadata();", cn);
             cm.ExecuteNonQuery();
 
             // create geometry table
             cm = new SQLiteCommand(
 @"CREATE TABLE WorldGeom (" +
-@"ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-@"Geometry BLOB NOT NULL);", cn);
+@"ID INTEGER PRIMARY KEY AUTOINCREMENT)", cn);
+            cm.ExecuteNonQuery();
+
+            cm = new SQLiteCommand("SELECT AddGeometryColumn('WorldGeom', 'Geometry', 4326, 'GEOMETRY', 2)", cn);
             cm.ExecuteNonQuery();
 
             // create feature data table
@@ -53,6 +59,9 @@ namespace ShapeImport
 @"Pop DOUBLE NOT NULL);", cn);
             cm.ExecuteNonQuery();
 
+            cm = new SQLiteCommand("SELECT CreateMbrCache('WorldGeom', 'Geometry');", cn);
+            cm.ExecuteNonQuery();
+
             // copy shape data to sqlite
             var shapeFile = appPath + @"\Data\world_countries_boundary_file_world_2002.shp";
             var shp = new SharpMap.Data.Providers.ShapeFile(shapeFile);
@@ -64,8 +73,7 @@ namespace ShapeImport
             foreach (FeatureDataRow row in ds.Tables[0].Rows)
             {
                 var bytes = SharpMap.Converters.WellKnownBinary.GeometryToWKB.Write(row.Geometry);
-                cm = new SQLiteCommand("INSERT INTO WorldGeom (Geometry) VALUES (GeomFromWkb(@wkb, -1))", cn);
-                cm.Parameters.Add("Geometry", DbType.Object);
+                cm = new SQLiteCommand("INSERT INTO WorldGeom (Geometry) VALUES (GeomFromWkb(@wkb, 4326))", cn);
                 cm.Parameters.AddWithValue("@wkb", bytes);
                 cm.ExecuteNonQuery();
 
@@ -82,9 +90,11 @@ namespace ShapeImport
 
             shp.Close();
 
-            // create spatial index
-            cm = new SQLiteCommand("SELECT CreateMbrCache('WorldGeom', 'Geometry');", cn);
+            // anlyze table
+            cm = new SQLiteCommand("ANALYZE WorldGeom;", cn);
             cm.ExecuteNonQuery();
+
+            cn.Close();
         }
     }
 }

@@ -38,7 +38,9 @@ namespace SpatialTutorial
                 string sx2 = Convert.ToString(queryWindow.Right, CultureInfo.InvariantCulture);
                 string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
 
-                var strSql = string.Format("SELECT Id, AsBinary(Geometry) FROM WorldGeom WHERE MBRIntersects(Geometry, BuildMbr({0}, {1}, {2}, {3}));",
+                var strSql = string.Format(
+                    "SELECT Id, AsBinary(Geometry) FROM WorldGeom WHERE ROWID IN " +
+                    "(Select rowid FROM cache_WorldGeom_Geometry WHERE mbr = FilterMbrIntersects({0}, {1}, {2}, {3}));",
                     sx1, sy2, sx2, sy1);
 
                 using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
@@ -51,6 +53,10 @@ namespace SpatialTutorial
 
                         // create GDI path from wkb
                         var path = WkbToGdi.Parse(wkb, p => TransformTools.WgsToTile(x, y, z, p));
+
+                        // degenerated polygon
+                        if (path == null)
+                            continue;
 
                         // fill polygon
                         var fill = new SolidBrush(Color.FromArgb(168, 0, 0, 255));

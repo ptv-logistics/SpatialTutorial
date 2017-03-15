@@ -34,11 +34,10 @@ namespace SpatialTutorial
                 var queryWindow = TransformTools.TileToWgs(x, y, z);
 
                 // build the sql
-                var strSql = string.Format(CultureInfo.InvariantCulture,
-                    @"SELECT WorldGeom.Id, AsBinary(Geometry), Pop/Area as PopDens FROM WorldGeom " +
-                    @"JOIN WorldData on WorldData.Id = WorldGeom.Id " +
-                    @"WHERE MBRIntersects(Geometry, BuildMbr({0}, {1}, {2}, {3}));",
-                    queryWindow.Left, queryWindow.Top, queryWindow.Right, queryWindow.Bottom);
+                string sx1 = Convert.ToString(queryWindow.Left, CultureInfo.InvariantCulture);
+                string sy1 = Convert.ToString(queryWindow.Top, CultureInfo.InvariantCulture);
+                string sx2 = Convert.ToString(queryWindow.Right, CultureInfo.InvariantCulture);
+                string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
 
                 var choropleth = new Classification<double, Color>
                 {
@@ -47,13 +46,21 @@ namespace SpatialTutorial
                     Values = new SortedList<double, Color> { // the classes
                         { 50, Color.Green },
                         { 100, Color.LightGreen },
-                        { 250, Color.Yellow }, 
+                        { 250, Color.Yellow },
                         { 500,Color.Orange },
                         { 1000, Color.Red },
                         { 2500, Color.DarkRed },
-                        { double.MaxValue, Color.Purple } 
+                        { double.MaxValue, Color.Purple }
                     }
                 };
+
+
+                // build the sql
+                var strSql = string.Format(
+                    "Select WorldData.Id, AsBinary(Geometry), Pop/Area as PopDens from (SELECT * from WorldGeom WHERE ROWID IN " +
+                    "(Select rowid FROM cache_WorldGeom_Geometry WHERE mbr = FilterMbrIntersects({0}, {1}, {2}, {3}))) as g " +
+                    "JOIN WorldData on WorldData.Id = g.Id ",
+                    sx1, sy2, sx2, sy1);
 
                 using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
@@ -62,10 +69,14 @@ namespace SpatialTutorial
                     {
                         int id = reader.GetInt32(0);
                         byte[] wkb = reader[1] as byte[];
-                        double popDens = reader.IsDBNull(2)? -1 : reader.GetDouble(2);
- 
+                        double popDens = reader.IsDBNull(2) ? -1 : reader.GetDouble(2);
+
                         // create GDI path from wkb
                         var path = WkbToGdi.Parse(wkb, p => TransformTools.WgsToTile(x, y, z, p));
+
+                        // degenerated polygon
+                        if (path == null)
+                            continue;
 
                         // fill polygon
                         var color = choropleth.GetValue(popDens);

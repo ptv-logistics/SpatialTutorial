@@ -70,17 +70,17 @@ namespace SpatialTutorial
         /// <summary>
         /// Convert a point relative to a mercator viewport to a point relative to an image
         /// </summary>
-        public static Point MercatorToImage(Rect mercatorRect, Size imageSize, Point mercatorPoint)
+        public static System.Drawing.Point MercatorToImage(Rect mercatorRect, Size imageSize, Point mercatorPoint)
         {
-            return new Point(
-              (mercatorPoint.X - mercatorRect.Left) / (mercatorRect.Right - mercatorRect.Left) * imageSize.Width,
-              imageSize.Height - (mercatorPoint.Y - mercatorRect.Top) / (mercatorRect.Bottom - mercatorRect.Top) * imageSize.Height);
+            return new System.Drawing.Point(
+              (int)((mercatorPoint.X - mercatorRect.Left) / (mercatorRect.Right - mercatorRect.Left) * imageSize.Width),
+              (int)(imageSize.Height - (mercatorPoint.Y - mercatorRect.Top) / (mercatorRect.Bottom - mercatorRect.Top) * imageSize.Height));
         }
 
         /// <summary>
         /// Convert a WGS (Lon,Lat) coordinate to a point relative to a tile image
         /// </summary>
-        public static Point WgsToTile(uint x, uint y, uint z, Point wgsPoint, double clipWgsAtDegrees = 85.05)
+        public static System.Drawing.Point WgsToTile(uint x, uint y, uint z, Point wgsPoint, double clipWgsAtDegrees = 85.05)
         {
             if (clipWgsAtDegrees < 90)
                 wgsPoint = ClipWgsPoint(wgsPoint, clipWgsAtDegrees);

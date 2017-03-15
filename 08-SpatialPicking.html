@@ -34,7 +34,7 @@
 
         .legend {
             text-align: left;
-            line-height: 18px;
+            line-height: 19px;
             color: #555;
         }
 
@@ -83,6 +83,9 @@
 	    });
         map.addLayer(myTileLayer);
 
+        // set cursor always interactive
+        $('.leaflet-container').css('cursor', 'pointer');
+
         // add click handler
         map.on('click', onMapClick);
 
@@ -102,7 +105,8 @@
         function displayResult(pickedPolygon, latlng) {
             if (pickedFeature)
                 map.removeLayer(pickedFeature);
-            var feature = {
+
+            var feature = {
                 "type": "Feature",
                 "properties": {
                     "style": {
@@ -121,7 +125,7 @@
             }).addTo(map);
 
             popup.setLatLng(latlng)
-                .setContent('<h4>'+pickedPolygon.properties.name + '</h4><b>Area: </b>' +
+                .setContent('<h4>' + pickedPolygon.properties.name + '</h4><b>Area: </b>' +
                 new Intl.NumberFormat().format(pickedPolygon.properties.area) + ' km2<br><b>Population: </b>' + new Intl.NumberFormat().format(pickedPolygon.properties.pop))
                 .openOn(map);
         };
