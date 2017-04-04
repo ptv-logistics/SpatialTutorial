@@ -22,18 +22,18 @@ namespace SpatialTutorial
                     throw (new ArgumentException("Invalid parameter"));
 
                 // Select elements containing the point, pre-filter with mbr-cache to optimize performance
-                var strSql = FormattableString.Invariant(
+                var query = FormattableString.Invariant(
                     $@"
                     SELECT WorldData.Id, AsGeoJSON(Geometry), Name, Region, Area, Pop from 
-                        (SELECT * from WorldGeom WHERE 
-                            ROWID IN 
-                                (Select rowid FROM cache_WorldGeom_Geometry 
-                                    WHERE mbr = FilterMbrIntersects({lng}, {lat}, {lng}, {lat}))
+                        (SELECT * from WorldGeom 
+                            WHERE ROWID IN 
+                                (Select rowid FROM cache_WorldGeom_Geometry WHERE
+                                    mbr = FilterMbrIntersects({lng}, {lat}, {lng}, {lat}))
                             AND Intersects(Geometry, MakePoint({lng}, {lat}))) as g                 
                         JOIN WorldData on WorldData.Id = g.Id 
                     ");
 
-                using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
+                using (SQLiteCommand command = new SQLiteCommand(query, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())

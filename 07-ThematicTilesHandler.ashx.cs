@@ -25,25 +25,12 @@ namespace SpatialTutorial
             if (!uint.TryParse(context.Request.Params["z"], out z))
                 throw (new ArgumentException("Invalid parameter"));
 
-            // Create a bitmap of size 256x256
-            using (var bmp = new Bitmap(256, 256))
-            // get graphics from bitmap
-            using (var graphics = Graphics.FromImage(bmp))
+            // definition of our choropletz
+            var choropleth = new Classification<double, Color>
             {
-                // calc rect from tile key
-                var queryWindow = TransformTools.TileToWgs(x, y, z);
-
-                // build the sql
-                string sx1 = Convert.ToString(queryWindow.Left, CultureInfo.InvariantCulture);
-                string sy1 = Convert.ToString(queryWindow.Top, CultureInfo.InvariantCulture);
-                string sx2 = Convert.ToString(queryWindow.Right, CultureInfo.InvariantCulture);
-                string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
-
-                var choropleth = new Classification<double, Color>
-                {
-                    MinValue = 0, // lower border for classification
-                    DefaultAttribute = Color.White, // color if key hits no class
-                    Values = new SortedList<double, Color> { // the classes
+                MinValue = 0, // lower border for classification
+                DefaultAttribute = Color.White, // color if key hits no class
+                Values = new SortedList<double, Color> { // the classes
                         { 50, Color.Green },
                         { 100, Color.LightGreen },
                         { 250, Color.Yellow },
@@ -52,17 +39,28 @@ namespace SpatialTutorial
                         { 2500, Color.DarkRed },
                         { double.MaxValue, Color.Purple }
                     }
-                };
+            };
 
+            // Create a bitmap of size 256x256
+            using (var bmp = new Bitmap(256, 256))
+            // get graphics from bitmap
+            using (var graphics = Graphics.FromImage(bmp))
+            {
+                // calc rect from tile key
+                var qw = TransformTools.TileToWgs(x, y, z);
 
                 // build the sql
-                var strSql = string.Format(
-                    "Select WorldData.Id, AsBinary(Geometry), Pop/Area as PopDens from (SELECT * from WorldGeom WHERE ROWID IN " +
-                    "(Select rowid FROM cache_WorldGeom_Geometry WHERE mbr = FilterMbrIntersects({0}, {1}, {2}, {3}))) as g " +
-                    "JOIN WorldData on WorldData.Id = g.Id ",
-                    sx1, sy2, sx2, sy1);
+                var query = FormattableString.Invariant(
+                    $@"
+                    Select WorldData.Id, AsBinary(Geometry), Pop/Area as PopDens from 
+                        (SELECT * from WorldGeom
+                            WHERE ROWID IN 
+                                (Select rowid FROM cache_WorldGeom_Geometry WHERE
+                                    mbr = FilterMbrIntersects({qw.Left}, {qw.Bottom}, {qw.Right}, {qw.Top}))) as g 
+                        JOIN WorldData on WorldData.Id = g.Id
+                    ");
 
-                using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
+                using (SQLiteCommand command = new SQLiteCommand(query, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())

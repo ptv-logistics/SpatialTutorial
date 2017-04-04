@@ -156,11 +156,8 @@ namespace SpatialTutorial
             // Create and return the Poylgon.
             if (arr.Count > 2)
                 return gp;
-            else
-            {
-                int dummy = 42;
+            else // don't return degenerated polygons (shrinked to a singularity)
                 return null;
-            }
         }
 
         private static GraphicsPath CreateWKBMultiPolygon(BinaryReader reader, WkbByteOrder byteOrder, Func<System.Windows.Point, System.Drawing.Point> geoToPixel)

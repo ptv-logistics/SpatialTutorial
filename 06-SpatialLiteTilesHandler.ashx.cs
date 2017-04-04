@@ -30,20 +30,17 @@ namespace SpatialTutorial
             using (var graphics = Graphics.FromImage(bmp))
             {
                 // calc rect from tile key
-                var queryWindow = TransformTools.TileToWgs(x, y, z);
+                var qw = TransformTools.TileToWgs(x, y, z);
 
                 // build the sql
-                string sx1 = Convert.ToString(queryWindow.Left, CultureInfo.InvariantCulture);
-                string sy1 = Convert.ToString(queryWindow.Top, CultureInfo.InvariantCulture);
-                string sx2 = Convert.ToString(queryWindow.Right, CultureInfo.InvariantCulture);
-                string sy2 = Convert.ToString(queryWindow.Bottom, CultureInfo.InvariantCulture);
+                var query = FormattableString.Invariant($@"
+                    SELECT Id, AsBinary(Geometry) FROM WorldGeom 
+                        WHERE ROWID IN 
+                            (Select rowid FROM cache_WorldGeom_Geometry 
+                                WHERE mbr = FilterMbrIntersects({qw.Left}, {qw.Bottom}, {qw.Right}, {qw.Top}))
+                    ");
 
-                var strSql = string.Format(
-                    "SELECT Id, AsBinary(Geometry) FROM WorldGeom WHERE ROWID IN " +
-                    "(Select rowid FROM cache_WorldGeom_Geometry WHERE mbr = FilterMbrIntersects({0}, {1}, {2}, {3}));",
-                    sx1, sy2, sx2, sy1);
-
-                using (SQLiteCommand command = new SQLiteCommand(strSql, Global.cn))
+                using (SQLiteCommand command = new SQLiteCommand(query, Global.cn))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
