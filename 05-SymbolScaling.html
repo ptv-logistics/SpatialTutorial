@@ -60,7 +60,7 @@
                 return L.layerGroup([background]).addTo(map);
             } else {
                 var background = L.tileLayer(
-                    'https://s0{s}-xserver2-dev.cloud.ptvgroup.com/services/rest/XMap/tile/{z}/{x}/{y}' +
+                    'https://s0{s}-xserver2-europe-test.cloud.ptvgroup.com/services/rest/XMap/tile/{z}/{x}/{y}' +
                     '?storedProfile={profile}&layers=background,transport&xtok={token}', {
                         profile: 'silkysand',
                         token: window.token,
@@ -71,7 +71,7 @@
                     }).addTo(map);
 
                 var foreground = L.tileLayer(
-                    'https://s0{s}-xserver2-dev.cloud.ptvgroup.com/services/rest/XMap/tile/{z}/{x}/{y}' +
+                    'https://s0{s}-xserver2-europe-test.cloud.ptvgroup.com/services/rest/XMap/tile/{z}/{x}/{y}' +
                     '?storedProfile={profile}&layers=labels&xtok={token}', {
                         profile: 'silkysand',
                         token: window.token,
