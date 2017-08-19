@@ -11,7 +11,7 @@ namespace SpatialTutorial
         /// <summary>
         /// Convert a WGS84 coordinate (Lon/Lat) to generic spherical mercator.
         /// When using tiles with wgs, the actual earth radius doesn't matter, we can just use radius 1.
-        /// To use this formula with "Google Mercator", you have to multiply the output coordinates by 6378137
+        /// To use this formula with "Google Mercator", you have to multiply the output coordinates by 6378137.
         /// For "PTV Mercator" use 6371000
         /// </summary>
         public static Point WgsToSphereMercator(Point point)
@@ -24,7 +24,7 @@ namespace SpatialTutorial
 
         /// <summary>
         /// The reverse of the function above
-        /// To use this formula with "Google Mercator", you have to divide the input coordinates by 6378137
+        /// To use this formula with "Google Mercator", you have to divide the input coordinates by 6378137.
         /// For "PTV Mercator" use 6371000
         /// </summary>
         public static Point SphereMercatorToWgs(Point point)
@@ -90,6 +90,9 @@ namespace SpatialTutorial
             return MercatorToImage(TileToSphereMercator(x, y, z), new Size(256, 256), WgsToSphereMercator(wgsPoint));
         }
 
+        /// <summary>
+        /// Clip the latitude value to avoid overflow at the poles
+        /// </summary>
         public static Point ClipWgsPoint(Point p, double degrees = 85.05)
         {
             if (p.Y > degrees)
