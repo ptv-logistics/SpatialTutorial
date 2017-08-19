@@ -9,25 +9,28 @@ namespace SpatialTutorial
     public static class TransformTools
     {
         /// <summary>
-        /// Convert Wgs84 coordinates (Lon/Lat) to spherical mercator,
-        /// aka "Web Mercator", aka "Google Mercator". You can also use this formula
-        /// for "PTV Mercator" by setting the radius to 6371000
+        /// Convert a WGS84 coordinate (Lon/Lat) to generic spherical mercator.
+        /// When using tiles with wgs, the actual earth radius doesn't matter, we can just use radius 1.
+        /// To use this formula with "Google Mercator", you have to multiply the output coordinates by 6378137
+        /// For "PTV Mercator" use 6371000
         /// </summary>
-        public static Point WgsToSphereMercator(Point point, double radius = 6378137)
+        public static Point WgsToSphereMercator(Point point)
         {
-            double x = radius * point.X * Math.PI / 180.0;
-            double y = radius * Math.Log(Math.Tan(Math.PI / 4.0 + point.Y * Math.PI / 360.0));
+            double x = point.X * Math.PI / 180.0;
+            double y = Math.Log(Math.Tan(Math.PI / 4.0 + point.Y * Math.PI / 360.0));
 
             return new Point(x, y);
         }
 
         /// <summary>
         /// The reverse of the function above
+        /// To use this formula with "Google Mercator", you have to divide the input coordinates by 6378137
+        /// For "PTV Mercator" use 6371000
         /// </summary>
-        public static Point SphereMercatorToWgs(Point point, double radius = 6378137)
+        public static Point SphereMercatorToWgs(Point point)
         {
-            double x = (180 / Math.PI) * (point.X / radius);
-            double y = (360 / Math.PI) * (Math.Atan(Math.Exp(point.Y / radius)) - (Math.PI / 4));
+            double x = (180 / Math.PI) * point.X;
+            double y = (360 / Math.PI) * (Math.Atan(Math.Exp(point.Y)) - (Math.PI / 4));
 
             return new Point(x, y);
         }
@@ -35,18 +38,18 @@ namespace SpatialTutorial
         /// <summary>
         /// Calculate the Mercator bounds for a tile key
         /// </summary>
-        public static Rect TileToSphereMercator(uint x, uint y, uint z, double radius = 6378137)
+        public static Rect TileToSphereMercator(uint x, uint y, uint z)
         {
-            double earthHalfCircum = radius * Math.PI;
-            double earthCircum = earthHalfCircum * 2.0;
+            // the width of a tile (when the earth has radius 1)
+            double arc = Math.PI * 2.0 / Math.Pow(2, z);
 
-            double arc = earthCircum / Math.Pow(2, z);
-            double x1 = earthHalfCircum - x * arc;
-            double y1 = earthHalfCircum - y * arc;
-            double x2 = earthHalfCircum - (x + 1) * arc;
-            double y2 = earthHalfCircum - (y + 1) * arc;
+            double x1 = -Math.PI + x * arc;
+            double x2 = x1 + arc;
 
-            return new Rect(new Point(-x1, y2), new Point(-x2, y1));
+            double y1 = Math.PI - y * arc;
+            double y2 = y1 - arc;
+
+            return new Rect(new Point(x1, y2), new Point(x2, y1));
         }
 
         /// <summary>
@@ -54,8 +57,7 @@ namespace SpatialTutorial
         /// </summary>
         public static Rect TileToWgs(uint x, uint y, uint z, int bleedingPixels = 0)
         {
-            // when using tiles with wgs, the actual earth radius doesn't matter, can just use radius 1 
-            var rect = TileToSphereMercator(x, y, z, 1);
+            var rect = TileToSphereMercator(x, y, z);
 
             if(bleedingPixels != 0)
             { 
@@ -64,7 +66,7 @@ namespace SpatialTutorial
                 rect.Inflate(rect.Width * bleedingFactor, rect.Height * bleedingFactor);
             }
 
-            return new Rect(SphereMercatorToWgs(rect.TopLeft, 1), SphereMercatorToWgs(rect.BottomRight, 1));
+            return new Rect(SphereMercatorToWgs(rect.TopLeft), SphereMercatorToWgs(rect.BottomRight));
         }
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace SpatialTutorial
             if (clipWgsAtDegrees < 90)
                 wgsPoint = ClipWgsPoint(wgsPoint, clipWgsAtDegrees);
 
-            return MercatorToImage(TileToSphereMercator(x, y, z, 1), new Size(256, 256), WgsToSphereMercator(wgsPoint, 1));
+            return MercatorToImage(TileToSphereMercator(x, y, z), new Size(256, 256), WgsToSphereMercator(wgsPoint));
         }
 
         public static Point ClipWgsPoint(Point p, double degrees = 85.05)
