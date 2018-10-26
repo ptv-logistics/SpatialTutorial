@@ -20,5 +20,4 @@ A tutorial that shows some practices to visualize, analyze and manipulate spatia
 
 ## Known Isues
 There are some Leaflet issues which affect the map-display in the tutorial. These issues have already been reported:
-* Missing tiles after fast zoom in and out with wouse-wheel https://github.com/Leaflet/Leaflet/issues/5381 
-* Raster lines are visible when dpi is set to a bigger value in windows https://github.com/Leaflet/Leaflet/issues/5152
+* Latest Chrome introduced 1px tile borders to integer zooms https://github.com/Leaflet/Leaflet/issues/6101
