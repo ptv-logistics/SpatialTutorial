@@ -13,14 +13,12 @@ namespace SpatialTutorial
         // http://msdn.microsoft.com/en-us/library/bb259689.aspx
         public void ProcessRequest(HttpContext context)
         {
-            uint x, y, z;
-
             //Parse request parameters
-            if (!uint.TryParse(context.Request.Params["x"], out x))
+            if (!uint.TryParse(context.Request.Params["x"], out uint x))
                 throw (new ArgumentException("Invalid parameter"));
-            if (!uint.TryParse(context.Request.Params["y"], out y))
+            if (!uint.TryParse(context.Request.Params["y"], out uint y))
                 throw (new ArgumentException("Invalid parameter"));
-            if (!uint.TryParse(context.Request.Params["z"], out z))
+            if (!uint.TryParse(context.Request.Params["z"], out uint z))
                 throw (new ArgumentException("Invalid parameter"));
 
             // Create a bitmap of size 256x256

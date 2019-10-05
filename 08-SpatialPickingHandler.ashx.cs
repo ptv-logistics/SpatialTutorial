@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SQLite;
 using System.Globalization;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace SpatialTutorial
@@ -8,17 +9,16 @@ namespace SpatialTutorial
     /// <summary>
     /// Summary description for SpatialPickHandler
     /// </summary>
-    public class SpatialPickingHandler : IHttpHandler
+    public class SpatialPickingHandler : HttpTaskAsyncHandler
     {
-        public void ProcessRequest(HttpContext context)
+        public override async Task ProcessRequestAsync(HttpContext context)
         {
             try
             {
                 //Parse request parameters
-                double lat, lng;
-                if (!double.TryParse(context.Request.Params["lat"], NumberStyles.Float, CultureInfo.InvariantCulture, out lat))
+                if (!double.TryParse(context.Request.Params["lat"], NumberStyles.Float, CultureInfo.InvariantCulture, out double lat))
                     throw (new ArgumentException("Invalid parameter"));
-                if (!double.TryParse(context.Request.Params["lng"], NumberStyles.Float, CultureInfo.InvariantCulture, out lng))
+                if (!double.TryParse(context.Request.Params["lng"], NumberStyles.Float, CultureInfo.InvariantCulture, out double lng))
                     throw (new ArgumentException("Invalid parameter"));
 
                 // Select elements containing the point, pre-filter with mbr-cache to optimize performance
@@ -33,10 +33,10 @@ namespace SpatialTutorial
                         JOIN WorldData on WorldData.Id = g.Id 
                     ");
 
-                using (SQLiteCommand command = new SQLiteCommand(query, Global.cn))
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                using (var command = new SQLiteCommand(query, Global.cn))
+                using (var reader = await command.ExecuteReaderAsync())
                 {
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
                         int id = reader.GetInt32(0);
                         string str = reader.GetString(1);
@@ -66,11 +66,6 @@ namespace SpatialTutorial
                 context.Response.ContentType = "text/json";
                 context.Response.Write(@"{  ""error"": """ + ex + @"""}");
             }
-        }
-
-        public bool IsReusable
-        {
-            get { return true; }
         }
     }
 }

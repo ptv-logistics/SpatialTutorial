@@ -1,28 +1,25 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Web;
 using System.Data.SQLite;
-using System.Globalization;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SpatialTutorial
 {
     /// <summary>
     /// Summary description for ThematicTilesHandler
     /// </summary>
-    public class ThematicTilesHandler : IHttpHandler
+    public class ThematicTilesHandler : HttpTaskAsyncHandler
     {
-        public void ProcessRequest(HttpContext context)
+        public override async Task ProcessRequestAsync(HttpContext context)
         {
-            uint x, y, z;
-
             //Parse request parameters
-            if (!uint.TryParse(context.Request.Params["x"], out x))
+            if (!uint.TryParse(context.Request.Params["x"], out uint x))
                 throw (new ArgumentException("Invalid parameter"));
-            if (!uint.TryParse(context.Request.Params["y"], out y))
+            if (!uint.TryParse(context.Request.Params["y"], out uint y))
                 throw (new ArgumentException("Invalid parameter"));
-            if (!uint.TryParse(context.Request.Params["z"], out z))
+            if (!uint.TryParse(context.Request.Params["z"], out uint z))
                 throw (new ArgumentException("Invalid parameter"));
 
             // definition of our choropletz
@@ -60,10 +57,10 @@ namespace SpatialTutorial
                         JOIN WorldData on WorldData.Id = g.Id
                     ");
 
-                using (SQLiteCommand command = new SQLiteCommand(query, Global.cn))
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                using (var command = new SQLiteCommand(query, Global.cn))
+                using (var reader = await command.ExecuteReaderAsync())
                 {
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
                         int id = reader.GetInt32(0);
                         byte[] wkb = reader[1] as byte[];
@@ -98,14 +95,9 @@ namespace SpatialTutorial
                     var buffer = memoryStream.ToArray();
 
                     context.Response.ContentType = "image/png";
-                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    await context.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
                 }
             }
-        }
-
-        public bool IsReusable
-        {
-            get { return true; }
         }
     }
 

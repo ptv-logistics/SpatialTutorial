@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace SpatialTutorial
@@ -8,19 +8,17 @@ namespace SpatialTutorial
     /// <summary>
     /// Summary description for DynamicTilesHandler
     /// </summary>
-    public class TilesAndLabelsHandler : IHttpHandler
+    public class TilesAndLabelsHandler : DefaultHttpHandler
     {
         // http://msdn.microsoft.com/en-us/library/bb259689.aspx
-        public void ProcessRequest(HttpContext context)
+        public override void ProcessRequest(HttpContext context)
         {
-            uint x, y, z;
-
             //Parse request parameters
-            if (!uint.TryParse(context.Request.Params["x"], out x))
+            if (!uint.TryParse(context.Request.Params["x"], out uint x))
                 throw (new ArgumentException("Invalid parameter"));
-            if (!uint.TryParse(context.Request.Params["y"], out y))
+            if (!uint.TryParse(context.Request.Params["y"], out uint y))
                 throw (new ArgumentException("Invalid parameter"));
-            if (!uint.TryParse(context.Request.Params["z"], out z))
+            if (!uint.TryParse(context.Request.Params["z"], out uint z))
                 throw (new ArgumentException("Invalid parameter"));
 
             // Create a bitmap of size 256x256
@@ -38,7 +36,7 @@ namespace SpatialTutorial
                 int right = (int)Math.Floor(rect.Right);
                 int top = (int)Math.Floor(rect.Top);
                 int bottom = (int)Math.Floor(rect.Bottom);
-                
+
                 // draw text
                 var font = new Font("Arial", symbolSize - 4);
                 var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
@@ -84,11 +82,6 @@ namespace SpatialTutorial
                     context.Response.OutputStream.Write(buffer, 0, buffer.Length);
                 }
             }
-        }
-
-        public bool IsReusable
-        {
-            get { return true; }
         }
     }
 }
