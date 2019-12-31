@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
 using System.Data.SQLite;
+using System.Web.Hosting;
 
 namespace SpatialTutorial
 {
@@ -14,19 +15,20 @@ namespace SpatialTutorial
 
         protected void Application_Start(object sender, EventArgs e)
         {
+            // open the database
+            cn = new SQLiteConnection($@"Data Source={HostingEnvironment.MapPath("~/App_Data")}\db.sqlite;Version=3;");
+            cn.Open();
+
+            // set PATH for SpatialLite depending on processor
             var mod_spatialite_folderPath = (IntPtr.Size == 4) ?
                  "mod_spatialite-4.4.0-RC0-win-x86" : "mod_spatialite-4.4.0-RC0-win-amd64";
 
-            //using relative path, cannot use absolute path, dll load will fail
             string path =
-                System.Web.Hosting.HostingEnvironment.MapPath("~/SpatialLite/") + mod_spatialite_folderPath + ";" +
-                Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine);
-
+                HostingEnvironment.MapPath("~/SpatialLite/") + mod_spatialite_folderPath + ";" +
+                Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("Path", path, EnvironmentVariableTarget.Process);
 
-            cn = new SQLiteConnection(@"Data Source=|DATADIRECTORY|\db.sqlite;Version=3;");
-            cn.Open();
-
+            // load spatiallite extension
             cn.LoadExtension("mod_spatialite");
         }
 
