@@ -112,10 +112,6 @@ namespace SpatialTutorial
                 }
             }
         }
-
-        public bool IsReusable
-        {
-            get { return true; }
-        }
+        public bool IsReusable => true;
     }
 }

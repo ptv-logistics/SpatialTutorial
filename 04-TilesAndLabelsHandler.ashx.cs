@@ -8,10 +8,10 @@ namespace SpatialTutorial
     /// <summary>
     /// Summary description for DynamicTilesHandler
     /// </summary>
-    public class TilesAndLabelsHandler : DefaultHttpHandler
+    public class TilesAndLabelsHandler : IHttpHandler
     {
         // http://msdn.microsoft.com/en-us/library/bb259689.aspx
-        public override void ProcessRequest(HttpContext context)
+        public void ProcessRequest(HttpContext context)
         {
             //Parse request parameters
             if (!uint.TryParse(context.Request.Params["x"], out uint x))
@@ -83,5 +83,6 @@ namespace SpatialTutorial
                 }
             }
         }
+        public bool IsReusable => true;
     }
 }
