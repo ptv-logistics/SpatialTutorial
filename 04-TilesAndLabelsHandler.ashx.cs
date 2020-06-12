@@ -8,10 +8,10 @@ namespace SpatialTutorial
     /// <summary>
     /// Summary description for DynamicTilesHandler
     /// </summary>
-    public class TilesAndLabelsHandler : IHttpHandler
+    public class TilesAndLabelsHandler : HttpTaskAsyncHandler
     {
         // http://msdn.microsoft.com/en-us/library/bb259689.aspx
-        public void ProcessRequest(HttpContext context)
+        public override async Task ProcessRequestAsync(HttpContext context)
         {
             //Parse request parameters
             if (!uint.TryParse(context.Request.Params["x"], out uint x))
@@ -79,10 +79,9 @@ namespace SpatialTutorial
                     var buffer = memoryStream.ToArray();
 
                     context.Response.ContentType = "image/png";
-                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    await context.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
                 }
             }
         }
-        public bool IsReusable => true;
     }
-}
+}  
