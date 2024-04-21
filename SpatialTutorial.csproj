@@ -50,12 +50,12 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
- <PropertyGroup> 
+  <PropertyGroup>
     <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
     <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
     <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
     <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
- </PropertyGroup>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -143,7 +143,9 @@
   <ItemGroup>
     <Content Include="02-DynamicTilesHandler.ashx" />
     <Content Include="08-SpatialPickingHandler.ashx" />
-    <None Include="App_Data\db.sqlite" />
+    <Content Include="App_Data\db.sqlite">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="07-ThematicTilesHandler.ashx" />
     <Content Include="packages.config" />
   </ItemGroup>
