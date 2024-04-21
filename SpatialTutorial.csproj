@@ -50,6 +50,12 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+ <PropertyGroup> 
+    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
+    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
+    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
+    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
+ </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data.DataSetExtensions" />
