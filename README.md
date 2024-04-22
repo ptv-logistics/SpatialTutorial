@@ -15,9 +15,3 @@ A tutorial that shows some practices to visualize, analyze and manipulate spatia
 * Reducing polygon vertices to corresponding pixel accuracy
 * Some beautifications
 
-## ToDo
-* Update the wiki
-
-## Known Isues
-There are some Leaflet issues which affect the map-display in the tutorial. These issues have already been reported:
-* Latest Chrome introduced 1px tile borders to integer zooms https://github.com/Leaflet/Leaflet/issues/6101
